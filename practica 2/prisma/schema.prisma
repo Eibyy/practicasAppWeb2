@@ -9,15 +9,30 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+enum Estado {
+  Activo
+  Pendiente
+  Eliminado
+}
+
+// enum Entorno{
+//   Desarollo
+//   Pruebas
+//   Produccion
+// }
 
 model Curso {
   id      Int      @id @default(autoincrement())
   descripcion   String   
   fecha_de_inicio    String?
   inscripcion   Inscripcion[]
+  estado Estado @default(Activo)
+  entorno Entorno @relation(fields:[entornoId], references: [id])
+  entornoId Int
 }
 
 model Aspirante {
@@ -25,15 +40,30 @@ model Aspirante {
   nombre    String
   identificacion   Int @unique
   inscripcion   Inscripcion[]
+  estado Estado @default(Activo)
+  entorno Entorno @relation(fields:[entornoId], references: [id])
+  entornoId Int
 }
 
 model Inscripcion {
   id        Int      @id @default(autoincrement())
+  fecha    DateTime @default(now())
+  hora    String
+  valor_cancelado   Float 
   curso    Curso     @relation(fields: [cursoId], references: [id])
   cursoId  Int
   aspirante    Aspirante     @relation(fields: [aspiranteId], references: [id])
   aspiranteId  Int
-  fecha    String
-  hora    String
-  valor_cancelado   Float 
+  estado Estado @default(Activo)
+  entorno Entorno @relation(fields:[entornoId], references: [id])
+  entornoId Int
+
+}
+
+model Entorno{
+  id Int @id @default(autoincrement())
+  descripcion String
+  curso Curso[]
+  aspirante Aspirante[]
+  inscripcion Inscripcion[]
 }

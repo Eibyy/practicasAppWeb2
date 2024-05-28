@@ -20,41 +20,46 @@ import {PrismaClient} from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-//Actualizando de desarrollo a prueba
 async function actualizar(){
-    const desarrolloCurso = await prisma.curso.updateMany({
-        where: {entornoId: 1},
-        data: {entornoId: 2}
+    //Bucle for y despues un if?
+    //guardar en un arreglo los que ya se han usado
+    var contadorPrueba = 0
+    var contadorDesarrollo = 0
+    const cambios = []
+    const cambiosCurso = await prisma.curso.findMany({
+        where:{entornoId:{in:[1,2]}}
     })
-    const desarrolloAspirante = await prisma.aspirante.updateMany({
-        where: {entornoId: 1},
-        data: {entornoId: 2}
-    })
-    const desarrolloInscripcion = await prisma.inscripcion.updateMany({
-        where: {entornoId: 1},
-        data: {entornoId: 2}
-    })
-    const totalPruebas = (desarrolloCurso.count + desarrolloAspirante.count + desarrolloInscripcion.count)
+    cambios.push(...cambiosCurso)
 
-    //Actualizando de prueba a desarrollo
-    const pruebaCurso = await prisma.curso.updateMany({
-        where: {entornoId: 2},
-        data: {entornoId: 1}
+    const cambiosAspirante = await prisma.curso.findMany({
+        where:{entornoId:{in:[1,2]}}
     })
-    const pruebaAspirante = await prisma.aspirante.updateMany({
-        where: {entornoId: 2},
-        data: {entornoId: 1}
-    })
-    const pruebaInscripcion = await prisma.inscripcion.updateMany({
-        where: {entornoId: 2},
-        data: {entornoId: 1}
-    })
+    cambios.push(...cambiosAspirante)
 
-    const totalDesarrollo = (pruebaCurso.count + pruebaAspirante.count + pruebaInscripcion.count)
-    console.log(pruebaCurso)
-    const mensaje = console.log("Cambios de prueba a desarrollo: "+totalDesarrollo+ " Cambios de desarrollo a prueba: "+ totalPruebas)
-    await prisma.$disconnect();
-    return mensaje
+    const cambiosInscripcion = await prisma.curso.findMany({
+        where:{entornoId:{in:[1,2]}}
+    })
+    cambios.push(...cambiosInscripcion)
+
+    for(let i=0; i<cambios.length;i++){
+        const curso = cambios[i]
+        if(curso.entornoId==1){
+            await prisma.curso.update({
+                where:{id: curso.id},
+                data:{entornoId:2}
+            })
+            contadorPrueba++
+        }else if(curso.entornoId == 2){
+            await prisma.curso.update({
+                where:{id: curso.id},
+                data:{entornoId:1}
+            })
+            contadorDesarrollo++
+        }
+        
+    }
+    console.log("Los nuevos datos en estado desarrollo son: "+ contadorDesarrollo + "\nLos nuevos datos en estado Prueba son: " + contadorPrueba)
+    return[contadorDesarrollo, contadorPrueba]
 }
 
 actualizar()

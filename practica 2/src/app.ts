@@ -1,50 +1,65 @@
-import { PrismaClient } from '@prisma/client'
+import express from "express"
+import {aspiranteRoute, cursoRoute, inscripcionRoute, entornoRoute  } from "./routes";
+
+const app = express()
+const port = 3000
+
+app.use(express.json())
+app.use('/curso', cursoRoute)
+app.use('/aspirante', aspiranteRoute)
+app.use('/inscripcion', inscripcionRoute)
+app.use('/entorno', entornoRoute)
+
+
+
+app.listen(port, () => {
+    console.log("Conectado al puerto: ", port)
+})
+
+import {PrismaClient} from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-//Punto 4
-async function main(id:number) { 
-  const transacciones = await prisma.inscripcion.findMany({
-    where: { id: id },
-    include: {
-      curso: {
-        select: {
-          descripcion: true,
-          fecha_de_inicio: true
-        }
-      },
-      aspirante: {
-        select: {
-          nombre: true,
-          identificacion: true
-        }
-      }
-    }
-  });
+async function actualizar(){
+    //Bucle for y despues un if?
+    //guardar en un arreglo los que ya se han usado
+    var contadorPrueba = 0
+    var contadorDesarrollo = 0
+    const cambios = []
+    const cambiosCurso = await prisma.curso.findMany({
+        where:{entornoId:{in:[1,2]}}
+    })
+    cambios.push(...cambiosCurso)
 
-  console.log('Transacciones encontradas:');
-  transacciones.forEach((transaccion) => {
-    console.log('--------------------------');
-    console.log('ID de la transacción:', transaccion.id);
-    console.log('Fecha:', transaccion.fecha);
-    console.log('Hora:', transaccion.hora);
-    console.log('Valor cancelado:', transaccion.valor_cancelado);
-    console.log('Curso:', transaccion.curso.descripcion);
-    console.log('Fecha de inicio del curso:', transaccion.curso.fecha_de_inicio);
-    console.log('Aspirante:', transaccion.aspirante.nombre);
-    console.log('Identificación del aspirante:', transaccion.aspirante.identificacion);
-    console.log('--------------------------');
-  });
+    const cambiosAspirante = await prisma.curso.findMany({
+        where:{entornoId:{in:[1,2]}}
+    })
+    cambios.push(...cambiosAspirante)
+
+    const cambiosInscripcion = await prisma.curso.findMany({
+        where:{entornoId:{in:[1,2]}}
+    })
+    cambios.push(...cambiosInscripcion)
+
+    for(let i=0; i<cambios.length;i++){
+        const curso = cambios[i]
+        if(curso.entornoId==1){
+            await prisma.curso.update({
+                where:{id: curso.id},
+                data:{entornoId:2}
+            })
+            contadorPrueba++
+        }else if(curso.entornoId == 2){
+            await prisma.curso.update({
+                where:{id: curso.id},
+                data:{entornoId:1}
+            })
+            contadorDesarrollo++
+        }
+        
+    }
+    console.log("Los nuevos datos en estado desarrollo son: "+ contadorDesarrollo + "\nLos nuevos datos en estado Prueba son: " + contadorPrueba)
+    return[contadorDesarrollo, contadorPrueba]
 }
 
-
-
-main(7)
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+actualizar()

@@ -34,17 +34,17 @@ router.post('/',async (req, res) =>{
 
 router.put('/:id',async (req, res) =>{
     const id = parseInt(req.params.id)
-    const {estado} = req.body
+    const {entornoId} = req.body
     const curso = await prisma.curso.update({
         where:{id:id},
         data:{
-            estado: estado
+            entornoId: entornoId
         }
     })
     res.json(curso)
 })
 
-
+//Con el name lo que saco es el nombre de la entidad en la que quiero trabajar y realiza la consulta en dicha entidad 
 router.put('/:name/:id_entidad/:id_entorno',async (req, res) =>{
     const name = req.params.name
     const id_entidad = parseInt(req.params.id_entidad)
