@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Estado {
+  Activo
+  Pendiente
+  Eliminado
+}
+
+// enum Entorno{
+//   Desarollo
+//   Pruebas
+//   Produccion
+// }
+
+model Curso {
+  id      Int      @id @default(autoincrement())
+  descripcion   String   
+  fecha_de_inicio    String?
+  inscripcion   Inscripcion[]
+  estado Estado @default(Activo)
+  entorno Entorno @relation(fields:[entornoId], references: [id])
+  entornoId Int
+}
+
+model Aspirante {
+  id     Int     @id @default(autoincrement())
+  nombre    String
+  identificacion   Int @unique
+  inscripcion   Inscripcion[]
+  estado Estado @default(Activo)
+  entorno Entorno @relation(fields:[entornoId], references: [id])
+  entornoId Int
+}
+
+model Inscripcion {
+  id        Int      @id @default(autoincrement())
+  fecha    DateTime @default(now())
+  hora    String
+  valor_cancelado   Float 
+  curso    Curso     @relation(fields: [cursoId], references: [id])
+  cursoId  Int
+  aspirante    Aspirante     @relation(fields: [aspiranteId], references: [id])
+  aspiranteId  Int
+  estado Estado @default(Activo)
+  entorno Entorno @relation(fields:[entornoId], references: [id])
+  entornoId Int
+
+}
+
+model Entorno{
+  id Int @id @default(autoincrement())
+  descripcion String
+  curso Curso[]
+  aspirante Aspirante[]
+  inscripcion Inscripcion[]
+}
