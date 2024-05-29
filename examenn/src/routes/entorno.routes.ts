@@ -20,19 +20,8 @@ router.post('/',async (req, res) =>{
     res.json({"Servidor": "Se ha agregado el nuevo entorno" , "entorno" : nuevo_entorno})
 })
 
-// router.put('/:name/:id_entidad/:id_entorno',async (req, res) =>{
-//     const name = req.params.name
-//     const id_entidad = parseInt(req.params.id_entidad)
-//     const id_entorno = parseInt(req.params.id_entorno)
-//     const {entorno} = req.body
-//     const cambio = await prisma.
-//     const cambio2 = await prisma.entorno.update({
-//         where:{id:id},
-//         data:{
-//             entorno: entorno
-//         }
-//     })
-//     res.json(cambio)
-// })
+
+
+
 
 export default router

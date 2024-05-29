@@ -43,5 +43,4 @@ async function actualizar(){
     return[contadorDesarrollo, contadorPrueba]
 }
 
-
-actualizar()
+export default actualizar

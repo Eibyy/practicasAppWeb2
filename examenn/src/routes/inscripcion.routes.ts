@@ -6,7 +6,7 @@ const router = Router()
 const prisma = new PrismaClient()
 
 router.get("/", async (req, res)=>{
-    const inscripciones = prisma.inscripcion.findMany()
+    const inscripciones = await prisma.inscripcion.findMany()
     res.json(inscripciones)
 })
 
