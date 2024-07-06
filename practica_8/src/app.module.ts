@@ -1,10 +1,24 @@
 import { Module } from '@nestjs/common';
-import { GatewayModule } from './websockets/websocket.module';
-
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Inscription } from './websockets/inscription.entity';
+import { WebsocketGateway } from './websockets/websocket.gateway';
+import { InscriptionService } from './websockets/inscription.service';
 
 @Module({
-  imports: [GatewayModule],
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: '',
+      database: 'practica8',
+      entities: [Inscription],
+      synchronize: true, 
+    }),
+    TypeOrmModule.forFeature([Inscription]),
+  ],
   controllers: [],
-  providers: [],
+  providers: [ WebsocketGateway, InscriptionService],
 })
 export class AppModule {}

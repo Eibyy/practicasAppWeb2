@@ -1,24 +1,38 @@
-import { MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { InscriptionService } from './inscription.service';
+import { Server, Socket } from 'socket.io';
+import { InscriptionDto } from './dto/inscription.dto';
 
-import {Server, Socket} from "socket.io";
+@WebSocketGateway({ cors: true })
+export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
-@WebSocketGateway()
-export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect{
+  @WebSocketServer()
+  wss: Server;
 
-    @WebSocketServer()
-    server:Server
+  constructor(private readonly inscripcionService: InscriptionService) {}
 
-    handleConnection(client: Socket ){
-        console.log("Cliente conectado" + client.id)
+  async handleConnection(client: Socket, ...args: any[]) {
+    const token = client.handshake.headers.authorization as string;
+    try {
+      await this.inscripcionService.registrarCliente(client, token);
+    } catch (error) {
+      client.disconnect();
+      return;
     }
+    this.wss.emit('clientes-actualizados', this.inscripcionService.obtenerClientesConectados());
+  }
 
-    handleDisconnect(client: Socket) {
-        console.log('Cliente descoenctado: ' + client.id)
-    }
+  handleDisconnect(client: Socket) {
+    this.inscripcionService.eliminarCliente(client.id);
+    this.wss.emit('clientes-actualizados', this.inscripcionService.obtenerClientesConectados());
+  }
 
-
-    @SubscribeMessage('mensaje')
-    handleMessage(@MessageBody() data:any){
-        console.log(data)
-    }
+  @SubscribeMessage('mensaje-desde-cliente')
+  async onMessageFromClient(client: Socket, payload: InscriptionDto): Promise<void> {
+    const inscripcion = await this.inscripcionService.create(payload);
+    this.wss.emit('mensaje-desde-servidor', {
+      nombreCompleto: this.inscripcionService.obtenerNombreCompletoUsuario(client.id),
+      mensaje: inscripcion,
+    });
+  }
 }
